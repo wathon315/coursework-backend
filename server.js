@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 });
 
 const { MongoClient, ObjectId } = require("mongodb");
-
+const { ObjectId } = require('mongodb');
 let db;
 
 MongoClient.connect(
@@ -35,14 +35,21 @@ MongoClient.connect(
     process.exit(1);
   });
 
-app.get("/", (req, res, next) => {
-  res.send("Select a collection, e.g., /collection/messages");
+  app.param("collectionName", (req, res, next, collectionName) => {
+    req.collection = db.collection(collectionName);
+    return next();
+  });
+
+app.get("/collection/:collectionName", async (req, res, next) => {
+  try {
+    const results = await req.collection.find({}).toArray();
+    res.json(results);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.param("collectionName", (req, res, next, collectionName) => {
-  req.collection = db.collection(collectionName);
-  return next();
-});
+
 
 app.get("/collection/:collectionName", async (req, res, next) => {
   try {
@@ -63,6 +70,25 @@ app.get("/collection/:collectionName/:id", (req, res, next) => {
   });
 });
 
+app.get("/search", async (req, res) => {
+  const searchQuery = req.query.q;  
+  if (!searchQuery) {
+    return res.status(400).send("Search query is required.");
+  }
+  try {
+    const results = await db.collection('courses').find({
+        $or: [
+            { subject: { $regex: searchQuery, $options: "i" } },  
+            { location: { $regex: searchQuery, $options: "i" } }, 
+            { price: { $regex: searchQuery, $options: "i" } }    
+        ]
+    }).toArray();
+    res.json(results); 
+} catch (err) {
+      console.error("Error searching:", err);
+      res.status(500).send("Server error");
+  }
+});
 app.post("/collection/:collectionName", async (req, res, next) => {
   try {
     const result = await req.collection.insertOne(req.body);
@@ -77,40 +103,28 @@ app.post("/collection/:collectionName", async (req, res, next) => {
 app.put("/collection/:collectionName/:id", async (req, res, next) => {
   try {
     const result = await req.collection.updateOne(
-      { _id: new ObjectId(req.params.id) },
+      { _id: new ObjectId(req.params.id) },  
       { $set: req.body }
     );
     res.json(
       result.modifiedCount === 1 ? { msg: "success" } : { msg: "error" }
     );
   } catch (err) {
-    console.log("Put Error");
+    console.log("Put Error:", err);
     next(err);
   }
 });
 
-app.delete("/collection/:collectionName/:id", (req, res, next) => {
-  req.collection.deleteOne({ _id: ObjectID(req.params.id) }, (e, result) => {
-    if (e) return next(e);
-    res.send(result.result.n === 1 ? { msg: "success" } : { msg: "error" });
-  });
-});
-app.get("/search", async (req, res) => {
-  const searchQuery = req.query.q;  
+app.delete("/collection/:collectionName/:id", async (req, res, next) => {
   try {
-      const results = await req.collection.find({
-          $or: [
-              { subject: { $regex: searchQuery, $options: "i" } },  
-              { location: { $regex: searchQuery, $options: "i" } }, 
-              { price: { $regex: searchQuery, $options: "i" } }    
-          ]
-      }).toArray();
-      res.json(results); 
-  } catch (err) {
-      console.error("Error searching:", err);
-      res.status(500).send("Server error");
+    const result = await req.collection.deleteOne({ _id: new ObjectId(req.params.id) });  
+    res.json(result.deletedCount === 1 ? { msg: "success" } : { msg: "error" });
+  } catch (e) {
+    console.log("Delete Error:", e);
+    next(e);
   }
 });
+
 app.listen(3000, () => {
   console.log("Express.js server running at localhost:3000");
 });
