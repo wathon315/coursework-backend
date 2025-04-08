@@ -72,9 +72,9 @@ app.get("/collection/:collectionName/:id", (req, res, next) => {
 
 app.get("/search", async (req, res) => {
   const searchQuery = req.query.q;  
-  if (!searchQuery) {
-    return res.status(400).send("Search query is required.");
-  }
+  // if (!searchQuery) {
+  //   return res.status(400).send("Search query is required.");
+  // }
   try {
     const results = await db.collection('courses').find({
         $or: [
