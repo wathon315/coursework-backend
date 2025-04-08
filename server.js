@@ -95,7 +95,22 @@ app.delete("/collection/:collectionName/:id", (req, res, next) => {
     res.send(result.result.n === 1 ? { msg: "success" } : { msg: "error" });
   });
 });
-
+app.get("/search", async (req, res) => {
+  const searchQuery = req.query.q;  
+  try {
+      const results = await req.collection.find({
+          $or: [
+              { subject: { $regex: searchQuery, $options: "i" } },  
+              { location: { $regex: searchQuery, $options: "i" } }, 
+              { price: { $regex: searchQuery, $options: "i" } }    
+          ]
+      }).toArray();
+      res.json(results); 
+  } catch (err) {
+      console.error("Error searching:", err);
+      res.status(500).send("Server error");
+  }
+});
 app.listen(3000, () => {
   console.log("Express.js server running at localhost:3000");
 });
