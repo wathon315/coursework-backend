@@ -85,7 +85,7 @@ app.get("/search", async (req, res) => {
     }).toArray();
     res.json(results); 
 } catch (err) {
-      console.error("Error searching:", err);
+      console.error("Error in searching:", err);
       res.status(500).send("Server error");
   }
 });
