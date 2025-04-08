@@ -93,9 +93,9 @@ app.post("/collection/:collectionName", async (req, res, next) => {
   try {
     const result = await req.collection.insertOne(req.body);
     res.json({ insertedId: result.insertedId });
-    console.log("Post Success");
+    console.log("Post function is success");
   } catch (err) {
-    console.log("Post Error");
+    console.log("Post function is error");
     next(err);
   }
 });
