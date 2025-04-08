@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 });
 
 const { MongoClient, ObjectId } = require("mongodb");
-const { ObjectId } = require('mongodb');
+
 let db;
 
 MongoClient.connect(
