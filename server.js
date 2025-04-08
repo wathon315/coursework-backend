@@ -54,10 +54,10 @@ app.get("/collection/:collectionName", async (req, res, next) => {
 app.get("/collection/:collectionName", async (req, res, next) => {
   try {
     const results = await req.collection.find({}).toArray();
-    console.log("Get Success");
+    console.log("Get function is success");
     res.json(results);
   } catch (err) {
-    console.log("Get Error");
+    console.log("Get function is error");
     next(err);
   }
 });
