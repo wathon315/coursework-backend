@@ -39,7 +39,17 @@ MongoClient.connect(
     req.collection = db.collection(collectionName);
     return next();
   });
-
+  app.use((req, res, next) => {
+    console.log(`Method: ${req.method}`);
+    console.log(`URL: ${req.url}`);
+    console.log(`Status: ${res.statusCode}`);
+    if (req.method === "POST" || req.method === "PUT") {
+      console.log(`Body: ${JSON.stringify(req.body, null, 2)}`);
+    }
+   
+    console.log("-------------------------");
+    next();
+  });
 app.get("/collection/:collectionName", async (req, res, next) => {
   try {
     const results = await req.collection.find({}).toArray();
